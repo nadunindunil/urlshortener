@@ -2,6 +2,7 @@ package com.demo.urlshortener.service;
 
 import com.demo.urlshortener.entity.UrlMapping;
 import com.demo.urlshortener.exception.ResourceNotFoundException;
+import com.demo.urlshortener.exception.ShortCodeCollisionException;
 import com.demo.urlshortener.repository.UrlMappingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,7 @@ public class UrlShortenerService {
     private final SecureRandom random = new SecureRandom();
     private final String baseUrl;
     private final UrlMappingRepository urlMappingRepository;
+    private final int maxAttempts = 10;
 
     @Autowired
     public UrlShortenerService( UrlMappingRepository urlMappingRepository, @Value("${app.baseUrl}") String baseUrl) {
@@ -39,8 +41,13 @@ public class UrlShortenerService {
         }
 
         String shortCode;
+        int attempts = 0;
+
         do {
             shortCode = generateShortCode();
+            if ( attempts++ >= maxAttempts ) {
+                throw new ShortCodeCollisionException("Failed to generate a unique short code after " + maxAttempts + " attempts.");
+            }
         } while ( urlMappingRepository.existsByShortCode(shortCode) );
 
         urlMappingRepository.save( new UrlMapping(shortCode, url));

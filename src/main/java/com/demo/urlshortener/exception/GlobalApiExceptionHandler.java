@@ -51,6 +51,21 @@ public class GlobalApiExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ShortCodeCollisionException.class)
+    public ResponseEntity<ApiErrorResponse> handleShortCodeCollisionException(
+            ShortCodeCollisionException ex, HttpServletRequest req) {
+        logger.warn("Short code collision: {} (Path: {})", ex.getMessage(), req.getRequestURI());
+        ApiErrorResponse errorResponse = new ApiErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                ex.getMessage(),
+                req.getRequestURI()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleConstraintViolationException(
             ConstraintViolationException ex, HttpServletRequest req) {

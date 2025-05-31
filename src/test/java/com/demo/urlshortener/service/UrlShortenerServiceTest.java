@@ -2,6 +2,7 @@ package com.demo.urlshortener.service;
 
 import com.demo.urlshortener.entity.UrlMapping;
 import com.demo.urlshortener.exception.ResourceNotFoundException;
+import com.demo.urlshortener.exception.ShortCodeCollisionException;
 import com.demo.urlshortener.repository.UrlMappingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,5 +99,34 @@ class UrlShortenerServiceTest {
         assertNotNull(shortened);
         assertTrue(shortened.startsWith(BASE_URL));
         verify(urlMappingRepository, times(3)).existsByShortCode(any());
+    }
+
+    @Test
+    void whenCollision_ShouldRetryAndEventuallySucceed() {
+        when(urlMappingRepository.findByOriginalUrl(VALID_URL))
+                .thenReturn(Optional.empty());
+
+        when(urlMappingRepository.existsByShortCode(anyString()))
+                .thenReturn(true, true, true, false);
+
+        String result = urlShortenerService.shortenUrl(VALID_URL);
+
+        assertTrue(result.startsWith(BASE_URL));
+        verify(urlMappingRepository, times(4)).existsByShortCode(anyString());
+        verify(urlMappingRepository).save(any(UrlMapping.class));
+    }
+
+    @Test
+    void whenMaxAttemptsExceeded_ShouldThrowException() {
+        when(urlMappingRepository.findByOriginalUrl(VALID_URL))
+                .thenReturn(Optional.empty());
+        when(urlMappingRepository.existsByShortCode(anyString()))
+                .thenReturn(true);
+
+        assertThrows(ShortCodeCollisionException.class,
+                () -> urlShortenerService.shortenUrl(VALID_URL));
+
+        verify(urlMappingRepository, times(10)).existsByShortCode(anyString());
+        verify(urlMappingRepository, never()).save(any(UrlMapping.class));
     }
 }
