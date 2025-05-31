@@ -21,6 +21,11 @@ docker-compose up --build
 Main API: http://localhost:8080
 Swagger UI: http://localhost:8080/swagger-ui.html
 H2 Console: http://localhost:8080/h2-console
+Actuator Endpoints:
+  - Health: http://localhost:8080/actuator/health
+  - Info: http://localhost:8080/actuator/info
+  - Metrics: http://localhost:8080/actuator/metrics
+  - Prometheus: http://localhost:8080/actuator/prometheus
 
 4. Stopping the application
 ```
