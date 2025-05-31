@@ -31,3 +31,12 @@ Actuator Endpoints:
 ```
 docker-compose down
 ```
+
+## Future improvements
+
+1. Rate limiting
+2. Caching shortcodes
+3. Layered architecture (Api gateway, Micro service, Redis, Database)
+4. Circuit breaker pattern when retry
+5. Security for API endpoints
+6. Prometheus/ Grafana or Cloudwatch for metrics and monitoring
